@@ -2,6 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @file huffman.c
+ * @author Thiago Chafado Almeida,Joao Victor da Silva,Joao Eduardo Ferrari
+ * @version 0.1
+ * @date 03-07-2023
+ *
+ * @copyright Copyright (c) 2023
+ *
+ *
+ * @brief Arquivo arvore de huffman
+ *
+ */
+
 //FIZ SEGUINDO ESSES PASSOS A RISCA
 /*Passos:
 – Contar a frequência de todos os caracteres no caractero de entrada;
@@ -44,7 +57,7 @@ void ordenaFloresta(struct Node** floresta, int size) {
     int i, j;
     for (i = 0; i < size - 1; i++) {
         for (j = 0; j < size - i - 1; j++) {
-            if (floresta[j]->frequencia > floresta[j + 1]->frequencia) {
+            if (floresta[j]->frequencia > floresta[j + 1]->frequencia || (floresta[j]->frequencia == floresta[j+1]->frequencia && floresta[j]->data > floresta[j+1]->data)) {
                 swapNó(&floresta[j], &floresta[j + 1]);
             }
         }
@@ -62,10 +75,12 @@ struct Node* mergeArvores(struct Node* left, struct Node* right) {
 struct Node* criacaoArvore(char* caracter) {
     int frequencies[256] = {0}; // Array para armazenar as frequências de cada caractere
     int i;
-
-    // Contar a frequência de cada caractere no caractero
+    // Contar a frequência de cada caractere no caracter
     for (i = 0; caracter[i] != '\0'; i++) {
+        
+        
         frequencies[(int)caracter[i]]++;
+        
     }
 
     // Montar a floresta inicial com árvores unitárias
@@ -78,23 +93,27 @@ struct Node* criacaoArvore(char* caracter) {
     }
 
     
-    ordenaFloresta(floresta, tamanhoFloresta);
+    
 
     // unindo arvore
     while (tamanhoFloresta > 1) {
+        ordenaFloresta(floresta, tamanhoFloresta);
         
         struct Node* menor1 = floresta[0];
         struct Node* menor2 = floresta[1];
 
         
         struct Node* arvoreMergeada = mergeArvores(menor1, menor2);
-
+    
         // recolocar a arvore 
         floresta[0] = arvoreMergeada;
-        floresta[1] = floresta[tamanhoFloresta - 1];
+        for (int i =1; i< tamanhoFloresta-1; i++){
+            floresta[i] = floresta[i+1];
+        }
+        floresta[tamanhoFloresta-1] = NULL;
         tamanhoFloresta--;
 
-        ordenaFloresta(floresta, tamanhoFloresta);
+        
     }
 
     
@@ -110,18 +129,26 @@ struct Node* criacaoArvore(char* caracter) {
 void imprimirHuffman(struct Node* raiz, int* codigo, int profundidade) {
     if (raiz->left == NULL && raiz->right == NULL) {
         int i;
-        printf("%c: ", raiz->data);
-        for (i = 0; i < profundidade; i++) {
-            printf("%d", codigo[i]);
+        if (raiz->data == ' ') {
+            printf(" : ");
+            for (i = 0; i < profundidade; i++) {
+                printf("%d", codigo[i]);
+            }
+        } else {
+            printf("%c: ", raiz->data);
+            for (i = 0; i < profundidade; i++) {
+                printf("%d", codigo[i]);
+            }
         }
         printf("\n");
-    }
-    else {
+    } else {
         codigo[profundidade] = 0;
         imprimirHuffman(raiz->left, codigo, profundidade + 1);
 
         codigo[profundidade] = 1;
         imprimirHuffman(raiz->right, codigo, profundidade + 1);
+
+        codigo[profundidade] = 0; 
     }
 }
 
@@ -133,7 +160,7 @@ int main() {
     input[strcspn(input, "\n")] = '\0'; // remove o caractere de nova linha
     struct Node* arvore = criacaoArvore(input);
 
-    int codigo[256];
+    int codigo[256] = {0};
     int profundidade = 0;
 
     
